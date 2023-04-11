@@ -1,0 +1,21 @@
+# Directories
+__pycache__/
+.venv/
+.env
+.env.*
+logs/
+*.egg-info/
+dist/
+build/
+htmlcov/
+.coverage
+fastapi/
+
+# Files
+*.pyc
+*.pyo
+*.egg
+*.egg-info
+*.log
+*.swp
+*.DS_Store
