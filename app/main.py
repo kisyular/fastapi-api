@@ -1,57 +1,14 @@
 from fastapi import FastAPI, Response, status, HTTPException, Depends
-from fastapi.params import Body
-from pydantic import BaseModel
-from typing import Optional
-import psycopg
-import time
-from dotenv import load_dotenv
 from sqlalchemy.orm import Session
 
 # import models
-from . import models
+from . import models, schemas
 from .database import engine, get_db
 
 # Create all tables in the database
 models.Base.metadata.create_all(bind=engine)
 
-# Load environment variables from .env file
-load_dotenv()
-import os
-
-db_host = os.getenv("DB_HOST")
-db_port = os.getenv("DB_PORT")
-db_user = os.getenv("DB_USER")
-db_password = os.getenv("DB_PASSWORD")
-
 app = FastAPI()
-
-# Database Connection
-# Connect to the database using the psycopg library
-while True:
-    try:
-        conn = psycopg.connect(
-            host=db_host,
-            port=db_port,
-            user=db_user,
-            password=db_password,
-            dbname="fastapi",
-            row_factory=psycopg.rows.dict_row,
-        )
-        print("Connected to the database")
-        cursor = conn.cursor()
-        break
-    except Exception as e:
-        print("Error: ", e)
-        print("Retrying in 5 seconds")
-        time.sleep(5)
-
-
-class Post(BaseModel):
-    title: str
-    content: str
-    published: bool = True
-    rating: Optional[int] = None
-    category: Optional[str] = None
 
 
 @app.get("/")
@@ -62,11 +19,11 @@ async def root():
 @app.get("/posts", status_code=status.HTTP_200_OK)
 def get_posts(db: Session = Depends(get_db)):
     posts = db.query(models.Post).all()
-    return {"data": posts}
+    return posts
 
 
 @app.post("/posts", status_code=status.HTTP_201_CREATED)
-def create_posts(post: Post, db: Session = Depends(get_db)):
+def create_posts(post: schemas.Post, db: Session = Depends(get_db)):
     new_post = models.Post(
         title=post.title,
         content=post.content,
@@ -76,7 +33,7 @@ def create_posts(post: Post, db: Session = Depends(get_db)):
     db.add(new_post)
     db.commit()
     db.refresh(new_post)
-    return {"data": new_post}
+    return new_post
 
 
 @app.get("/posts/{id}")
@@ -87,11 +44,11 @@ def get_post(id: int, db: Session = Depends(get_db)):
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"post with id: {id} does not exist",
         )
-    return {"data": post}
+    return post
 
 
 @app.put("/posts/{id}")
-def update_post(id: int, post: Post, db: Session = Depends(get_db)):
+def update_post(id: int, post: schemas.Post, db: Session = Depends(get_db)):
     post_query = db.query(models.Post).filter(models.Post.id == id)
 
     if not post_query.first():
@@ -110,7 +67,7 @@ def update_post(id: int, post: Post, db: Session = Depends(get_db)):
     )
     db.commit()
 
-    return {"data": post_query.first()}
+    return post_query.first()
 
 
 @app.delete("/posts/{id}", status_code=status.HTTP_204_NO_CONTENT)
@@ -142,7 +99,7 @@ def get_posts_by_category(category: str, db: Session = Depends(get_db)):
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"post with category: {category} does not exist",
         )
-    return {"data": posts}
+    return posts
 
 
 # Get Posts by Published
@@ -155,4 +112,4 @@ def get_posts_by_published(published: bool, db: Session = Depends(get_db)):
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"post with published: {published} does not exist",
         )
-    return {"data": posts}
+    return posts
