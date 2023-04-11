@@ -1,5 +1,6 @@
 from fastapi import FastAPI, Response, status, HTTPException, Depends
 from sqlalchemy.orm import Session
+from typing import List
 
 # import models
 from . import models, schemas
@@ -16,13 +17,17 @@ async def root():
     return {"message": "Welcome to my API"}
 
 
-@app.get("/posts", status_code=status.HTTP_200_OK)
+@app.get(
+    "/posts", status_code=status.HTTP_200_OK, response_model=List[schemas.PostResponse]
+)
 def get_posts(db: Session = Depends(get_db)):
     posts = db.query(models.Post).all()
     return posts
 
 
-@app.post("/posts", status_code=status.HTTP_201_CREATED)
+@app.post(
+    "/posts", status_code=status.HTTP_201_CREATED, response_model=schemas.PostResponse
+)
 def create_posts(post: schemas.Post, db: Session = Depends(get_db)):
     new_post = models.Post(
         title=post.title,
@@ -36,7 +41,9 @@ def create_posts(post: schemas.Post, db: Session = Depends(get_db)):
     return new_post
 
 
-@app.get("/posts/{id}")
+@app.get(
+    "/posts/{id}", status_code=status.HTTP_200_OK, response_model=schemas.PostResponse
+)
 def get_post(id: int, db: Session = Depends(get_db)):
     post = db.query(models.Post).filter(models.Post.id == id).first()
     if not post:
@@ -47,7 +54,11 @@ def get_post(id: int, db: Session = Depends(get_db)):
     return post
 
 
-@app.put("/posts/{id}")
+@app.put(
+    "/posts/{id}",
+    status_code=status.HTTP_202_ACCEPTED,
+    response_model=schemas.PostResponse,
+)
 def update_post(id: int, post: schemas.Post, db: Session = Depends(get_db)):
     post_query = db.query(models.Post).filter(models.Post.id == id)
 
