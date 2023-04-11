@@ -3,8 +3,40 @@ from fastapi.params import Body
 from pydantic import BaseModel
 from typing import Optional
 from random import randrange
+import psycopg
+import time
+
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
+import os
+
+db_host = os.getenv("DB_HOST")
+db_port = os.getenv("DB_PORT")
+db_user = os.getenv("DB_USER")
+db_password = os.getenv("DB_PASSWORD")
 
 app = FastAPI()
+
+# Database Connection
+# Connect to the database using the psycopg library
+while True:
+    try:
+        conn = psycopg.connect(
+            host=db_host,
+            port=db_port,
+            user=db_user,
+            password=db_password,
+            # database="fastapi",
+        )
+        print("Connected to the database")
+        cursor = conn.cursor()
+        break
+    except Exception as e:
+        print("Error: ", e)
+        print("Retrying in 5 seconds")
+        time.sleep(5)
 
 
 class Post(BaseModel):
