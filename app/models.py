@@ -28,3 +28,23 @@ class Post(Base):
     created_at = Column(
         TIMESTAMP(timezone=True), nullable=False, server_default=func.now()
     )
+
+
+# Deleted Post model
+class DeletedPost(Base):
+    __tablename__ = "deleted_posts"
+    id = Column(Integer, primary_key=True, autoincrement=True, nullable=False)
+    title = Column(String, nullable=False)
+    content = Column(String, nullable=False)
+    published = Column(Boolean, nullable=False, server_default="false")
+    category = Column(String, nullable=False)
+    deleted_by = Column(Integer, ForeignKey("users.id"))
+    deleted_at = Column(
+        TIMESTAMP(timezone=True), nullable=False, server_default=func.now()
+    )
+    user = relationship("User", back_populates="deleted_posts")
+
+    # User model
+    User.deleted_posts = relationship(
+        "DeletedPost", back_populates="user", cascade="all, delete"
+    )
