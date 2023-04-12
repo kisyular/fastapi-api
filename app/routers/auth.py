@@ -1,7 +1,7 @@
-from fastapi import status, HTTPException, Depends, APIRouter, Response
+from fastapi import status, HTTPException, Depends, APIRouter
 from sqlalchemy.orm import Session
 from ..database import get_db
-from .. import models, oauth2, schemas, utils
+from .. import models, oauth2, utils
 from fastapi.security import OAuth2PasswordRequestForm
 
 
@@ -24,12 +24,12 @@ def login(
     )
     if not user:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
+            status_code=status.HTTP_403_NOT_FOUND,
             detail="Incorrect email or password",
         )
     if not utils.verify_password(user_credentials.password, user.password):
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
+            status_code=status.HTTP_403_NOT_FOUND,
             detail="Incorrect password or email",
         )
     # Generate a JWT token
