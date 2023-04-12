@@ -6,13 +6,15 @@ from sqlalchemy.sql.sqltypes import TIMESTAMP
 
 
 # User model
-# class User(Base):
-#     __tablename__ = "users"
-#     id = Column(Integer, primary_key=True, autoincrement=True, nullable=False)
-#     username = Column(String, unique=True, nullable=False)
-#     email = Column(String, unique=True, nullable=False)
-#     hashed_password = Column(String, nullable=False)
-#     posts = relationship("Post", back_populates="user")
+class User(Base):
+    __tablename__ = "users"
+    id = Column(Integer, primary_key=True, autoincrement=True, nullable=False)
+    name = Column(String, nullable=False)
+    email = Column(String, unique=True, nullable=False)
+    password = Column(String, nullable=False)
+    created_at = Column(
+        TIMESTAMP(timezone=True), nullable=False, server_default=func.now()
+    )
 
 
 # Post model

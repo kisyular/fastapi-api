@@ -3,7 +3,10 @@ from sqlalchemy.orm import Session
 from typing import List
 
 # import models
-from . import models, schemas
+from . import (
+    models,  # The models help us to define the database models
+    schemas,  # The schemas help us to define the data types of the request and response
+)
 from .database import engine, get_db
 
 # Create all tables in the database
@@ -124,3 +127,24 @@ def get_posts_by_published(published: bool, db: Session = Depends(get_db)):
             detail=f"post with published: {published} does not exist",
         )
     return posts
+
+
+# Create a user in users path
+@app.post(
+    "/users", status_code=status.HTTP_201_CREATED, response_model=schemas.UserResponse
+)
+def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
+    new_user = models.User(
+        name=user.name,
+        email=user.email,
+        password=user.password,
+    )
+    if db.query(models.User).filter(models.User.email == user.email).first():
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"User with email: {user.email} already exists",
+        )
+    db.add(new_user)
+    db.commit()
+    db.refresh(new_user)
+    return new_user
