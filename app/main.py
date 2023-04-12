@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 
 # import the routers
-from .routers import post, user
+from .routers import post, user, auth
 
 # import models
 from . import (
@@ -23,3 +23,4 @@ async def root():
 # Include the routers
 app.include_router(post.router)
 app.include_router(user.router)
+app.include_router(auth.router)
