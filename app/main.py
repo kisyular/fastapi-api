@@ -6,6 +6,7 @@ from typing import List
 from . import (
     models,  # The models help us to define the database models
     schemas,  # The schemas help us to define the data types of the request and response
+    utils,  # The utils has helper functions
 )
 from .database import engine, get_db
 
@@ -134,10 +135,12 @@ def get_posts_by_published(published: bool, db: Session = Depends(get_db)):
     "/users", status_code=status.HTTP_201_CREATED, response_model=schemas.UserResponse
 )
 def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
+    # Hash the password
+    hashed_password = utils.hash_password(user.password)
     new_user = models.User(
         name=user.name,
         email=user.email,
-        password=user.password,
+        password=hashed_password,
     )
     if db.query(models.User).filter(models.User.email == user.email).first():
         raise HTTPException(
