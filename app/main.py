@@ -151,3 +151,26 @@ def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
     db.commit()
     db.refresh(new_user)
     return new_user
+
+
+# Get a user by id
+@app.get(
+    "/users/{id}", status_code=status.HTTP_200_OK, response_model=schemas.UserResponse
+)
+def get_user(id: int, db: Session = Depends(get_db)):
+    user = db.query(models.User).filter(models.User.id == id).first()
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"User with id: {id} does not exist",
+        )
+    return user
+
+
+# Get all users
+@app.get(
+    "/users", status_code=status.HTTP_200_OK, response_model=List[schemas.UserResponse]
+)
+def get_users(db: Session = Depends(get_db)):
+    users = db.query(models.User).all()
+    return users
