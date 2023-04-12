@@ -1,15 +1,15 @@
 from .. import models, schemas
-from fastapi import status, HTTPException, Depends, APIRouter
+from fastapi import status, HTTPException, Depends, APIRouter, Response
 from sqlalchemy.orm import Session
 from typing import List
 from ..database import get_db
 
 # Create a router
-router = APIRouter()
+router = APIRouter(prefix="/posts", tags=["Posts"])
 
 
 @router.get(
-    "/posts", status_code=status.HTTP_200_OK, response_model=List[schemas.PostResponse]
+    "/", status_code=status.HTTP_200_OK, response_model=List[schemas.PostResponse]
 )
 def get_posts(db: Session = Depends(get_db)):
     posts = db.query(models.Post).all()
@@ -17,7 +17,7 @@ def get_posts(db: Session = Depends(get_db)):
 
 
 @router.post(
-    "/posts", status_code=status.HTTP_201_CREATED, response_model=schemas.PostResponse
+    "/", status_code=status.HTTP_201_CREATED, response_model=schemas.PostResponse
 )
 def create_posts(post: schemas.Post, db: Session = Depends(get_db)):
     new_post = models.Post(
@@ -33,7 +33,7 @@ def create_posts(post: schemas.Post, db: Session = Depends(get_db)):
 
 
 @router.get(
-    "/posts/{id}", status_code=status.HTTP_200_OK, response_model=schemas.PostResponse
+    "/{id}", status_code=status.HTTP_200_OK, response_model=schemas.PostResponse
 )
 def get_post(id: int, db: Session = Depends(get_db)):
     post = db.query(models.Post).filter(models.Post.id == id).first()
@@ -46,7 +46,7 @@ def get_post(id: int, db: Session = Depends(get_db)):
 
 
 @router.put(
-    "/posts/{id}",
+    "/{id}",
     status_code=status.HTTP_202_ACCEPTED,
     response_model=schemas.PostResponse,
 )
@@ -72,7 +72,7 @@ def update_post(id: int, post: schemas.Post, db: Session = Depends(get_db)):
     return post_query.first()
 
 
-@router.delete("/posts/{id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete("/{id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_post(id: int, db: Session = Depends(get_db)):
     # deleting post
     deleted_post = (
@@ -92,7 +92,7 @@ def delete_post(id: int, db: Session = Depends(get_db)):
 
 
 # Get Posts by Category
-@router.get("/posts/category/{category}")
+@router.get("/category/{category}")
 def get_posts_by_category(category: str, db: Session = Depends(get_db)):
     posts = db.query(models.Post).filter(models.Post.category == category).all()
 
@@ -105,7 +105,7 @@ def get_posts_by_category(category: str, db: Session = Depends(get_db)):
 
 
 # Get Posts by Published
-@router.get("/posts/published/{published}")
+@router.get("/published/{published}")
 def get_posts_by_published(published: bool, db: Session = Depends(get_db)):
     posts = db.query(models.Post).filter(models.Post.published == published).all()
 

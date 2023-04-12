@@ -5,12 +5,12 @@ from typing import List
 from ..database import get_db
 
 # Create a router
-router = APIRouter()
+router = APIRouter(prefix="/users", tags=["Users"])
 
 
 # Create a user in users path
 @router.post(
-    "/users", status_code=status.HTTP_201_CREATED, response_model=schemas.UserResponse
+    "/", status_code=status.HTTP_201_CREATED, response_model=schemas.UserResponse
 )
 def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
     # Hash the password
@@ -33,7 +33,7 @@ def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
 
 # Get a user by id
 @router.get(
-    "/users/{id}", status_code=status.HTTP_200_OK, response_model=schemas.UserResponse
+    "/{id}", status_code=status.HTTP_200_OK, response_model=schemas.UserResponse
 )
 def get_user(id: int, db: Session = Depends(get_db)):
     user = db.query(models.User).filter(models.User.id == id).first()
@@ -47,7 +47,7 @@ def get_user(id: int, db: Session = Depends(get_db)):
 
 # Get all users
 @router.get(
-    "/users", status_code=status.HTTP_200_OK, response_model=List[schemas.UserResponse]
+    "/", status_code=status.HTTP_200_OK, response_model=List[schemas.UserResponse]
 )
 def get_users(db: Session = Depends(get_db)):
     users = db.query(models.User).all()
