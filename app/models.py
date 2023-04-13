@@ -33,6 +33,25 @@ class Post(Base):
         Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False
     )
     owner = relationship("User", back_populates="posts")
+    votes = relationship("Vote", backref="post")
+
+
+# Vote model
+class Vote(Base):
+    __tablename__ = "votes"
+    id = Column(Integer, primary_key=True, autoincrement=True, nullable=False)
+    post_id = Column(
+        Integer,
+        ForeignKey("posts.id", ondelete="CASCADE"),
+        nullable=False,
+        primary_key=True,
+    )
+    user_id = Column(
+        Integer,
+        ForeignKey("users.id", ondelete="CASCADE"),
+        nullable=False,
+        primary_key=True,
+    )
 
 
 # Deleted Post model
@@ -52,22 +71,4 @@ class DeletedPost(Base):
     # User model
     User.deleted_posts = relationship(
         "DeletedPost", back_populates="owner", cascade="all, delete"
-    )
-
-
-# Vote model
-class Vote(Base):
-    __tablename__ = "votes"
-    id = Column(Integer, primary_key=True, autoincrement=True, nullable=False)
-    post_id = Column(
-        Integer,
-        ForeignKey("posts.id", ondelete="CASCADE"),
-        nullable=False,
-        primary_key=True,
-    )
-    user_id = Column(
-        Integer,
-        ForeignKey("users.id", ondelete="CASCADE"),
-        nullable=False,
-        primary_key=True,
     )

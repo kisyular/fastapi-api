@@ -36,6 +36,15 @@ class PostResponse(PostBase):
     created_at: datetime
     owner_id: int
     owner: UserResponse
+    votes = []
+
+    class Config:
+        orm_mode = True
+
+
+class PostWithVotes(BaseModel):
+    votes: int
+    Post: PostResponse
 
     class Config:
         orm_mode = True

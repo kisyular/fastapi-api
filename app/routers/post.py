@@ -1,16 +1,17 @@
-from sqlalchemy import or_
+from sqlalchemy import func, or_
 from .. import models, schemas, oauth2
 from fastapi import status, HTTPException, Depends, APIRouter, Response
 from sqlalchemy.orm import Session
 from typing import List, Optional
 from ..database import get_db
+from sqlalchemy.orm import joinedload
 
 # Create a router
 router = APIRouter(prefix="/posts", tags=["Posts"])
 
 
 @router.get(
-    "/", status_code=status.HTTP_200_OK, response_model=List[schemas.PostResponse]
+    "/", status_code=status.HTTP_200_OK, response_model=List[schemas.PostWithVotes]
 )
 def get_posts(
     db: Session = Depends(get_db),
@@ -21,7 +22,11 @@ def get_posts(
     search: Optional[str] = None,
     category: Optional[str] = None,
 ):
-    query = db.query(models.Post)
+    query = (
+        db.query(models.Post, func.count(models.Vote.id).label("votes"))
+        .outerjoin(models.Vote, models.Post.id == models.Vote.post_id)
+        .group_by(models.Post.id)
+    )
     if published is not None:
         query = query.filter(models.Post.published == published)
     if category is not None:
@@ -35,9 +40,19 @@ def get_posts(
                 models.Post.content.ilike(search_pattern),
             )
         )
-    # get all posts sorted by id
-    posts = query.order_by(models.Post.id.desc()).offset(skip).limit(limit).all()
-    return posts
+    # # get all posts sorted by id
+    # posts = query.order_by(models.Post.id.desc()).offset(skip).limit(limit).all()
+
+    # join the post and vote table
+    results = (
+        query.order_by(models.Post.id.desc())
+        .options(joinedload(models.Post.votes))
+        .offset(skip)
+        .limit(limit)
+        .all()
+    )
+    results = list(map(lambda x: x._mapping, results))
+    return results
 
 
 @router.post(
@@ -63,20 +78,26 @@ def create_posts(
 
 
 @router.get(
-    "/{id}", status_code=status.HTTP_200_OK, response_model=schemas.PostResponse
+    "/{id}", status_code=status.HTTP_200_OK, response_model=schemas.PostWithVotes
 )
 def get_post(
     id: int,
     db: Session = Depends(get_db),
     current_user: int = Depends(oauth2.get_current_user),
 ):
-    print(current_user.email)
-    post = db.query(models.Post).filter(models.Post.id == id).first()
+    post = (
+        db.query(models.Post, func.count(models.Vote.id).label("votes"))
+        .outerjoin(models.Vote, models.Post.id == models.Vote.post_id)
+        .group_by(models.Post.id)
+        .filter(models.Post.id == id)
+        .first()
+    )
     if not post:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"post with id: {id} does not exist",
         )
+    post = post._mapping
     return post
 
 
