@@ -7,7 +7,7 @@ from .routers import post, user, auth
 from . import (
     models,  # The models help us to define the database models
 )
-from .database import engine, get_db
+from .database import engine
 
 # Create all tables in the database
 models.Base.metadata.create_all(bind=engine)
