@@ -36,6 +36,7 @@ def create_posts(
         content=post.content,
         published=post.published,
         category=post.category,
+        owner_id=current_user.id,
     )
     db.add(new_post)
     db.commit()
@@ -68,28 +69,34 @@ def get_post(
 )
 def update_post(
     id: int,
-    post: schemas.Post,
+    updated_post: schemas.Post,
     db: Session = Depends(get_db),
     current_user: int = Depends(oauth2.get_current_user),
 ):
     post_query = db.query(models.Post).filter(models.Post.id == id)
+    post = post_query.first()
 
-    if not post_query.first():
+    if not post:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"post with id: {id} does not exist",
         )
 
+    if post.owner_id != current_user.id:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail=f"you are not authorized to update this post",
+        )
+
     post_query.update(
         {
-            "title": post.title,
-            "content": post.content,
-            "published": post.published,
-            "category": post.category,
+            "title": updated_post.title,
+            "content": updated_post.content,
+            "published": updated_post.published,
+            "category": updated_post.category,
         }
     )
     db.commit()
-
     return post_query.first()
 
 
@@ -99,13 +106,22 @@ def delete_post(
     db: Session = Depends(get_db),
     current_user: int = Depends(oauth2.get_current_user),
 ):
-    post = db.query(models.Post).filter(models.Post.id == id).first()
+    post_query = db.query(models.Post).filter(models.Post.id == id)
+    post = post_query.first()
     # deleting post
-    deleted_post = (
-        db.query(models.Post)
-        .filter(models.Post.id == id)
-        .delete(synchronize_session=False)
-    )
+    if post == None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"post with id: {id} does not exist",
+        )
+
+    if post.owner_id != current_user.id:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail=f"you are not authorized to delete this post",
+        )
+
+    deleted_post = post_query.delete(synchronize_session=False)
 
     # Save post to deleted_posts table
     if post and deleted_post:
@@ -120,17 +136,15 @@ def delete_post(
 
     db.commit()
 
-    if not deleted_post:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"post with id: {id} does not exist",
-        )
-
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
 # Get Posts by Category
-@router.get("/category/{category}")
+@router.get(
+    "/category/{category}",
+    response_model=List[schemas.PostResponse],
+    status_code=status.HTTP_200_OK,
+)
 def get_posts_by_category(
     category: str,
     db: Session = Depends(get_db),
@@ -147,7 +161,11 @@ def get_posts_by_category(
 
 
 # Get Posts by Published
-@router.get("/published/{published}")
+@router.get(
+    "/published/{published}",
+    response_model=List[schemas.PostResponse],
+    status_code=status.HTTP_200_OK,
+)
 def get_posts_by_published(
     published: bool,
     db: Session = Depends(get_db),
@@ -161,3 +179,23 @@ def get_posts_by_published(
             detail=f"post with published: {published} does not exist",
         )
     return posts
+
+
+# Get deleted posts
+@router.get(
+    "/deleted/trash",
+    response_model=List[schemas.DeletedPostResponse],
+    status_code=status.HTTP_200_OK,
+)
+def get_deleted_posts(
+    db: Session = Depends(get_db),
+    current_user: int = Depends(oauth2.get_current_user),
+):
+    deleted_posts = db.query(models.DeletedPost).all()
+
+    if not deleted_posts:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"no deleted posts",
+        )
+    return deleted_posts

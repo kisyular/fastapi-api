@@ -7,20 +7,11 @@ class PostBase(BaseModel):
     title: str
     content: str
     published: bool = True
-    rating: Optional[int] = None
     category: Optional[str] = None
 
 
 class Post(PostBase):
     pass
-
-
-class PostResponse(PostBase):
-    id: int
-    created_at: datetime
-
-    class Config:
-        orm_mode = True
 
 
 class UserCreate(BaseModel):
@@ -39,6 +30,16 @@ class UserResponse(BaseModel):
         orm_mode = True
 
 
+class PostResponse(PostBase):
+    id: int
+    created_at: datetime
+    owner_id: int
+    owner: UserResponse
+
+    class Config:
+        orm_mode = True
+
+
 class UserLogin(BaseModel):
     email: EmailStr
     password: str
@@ -51,3 +52,13 @@ class Token(BaseModel):
 
 class TokenData(BaseModel):
     user_id: Optional[int] = None
+
+
+class DeletedPostResponse(PostBase):
+    id: int
+    deleted_by: int
+    deleted_at: datetime
+    user: UserResponse
+
+    class Config:
+        orm_mode = True

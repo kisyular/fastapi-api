@@ -15,6 +15,7 @@ class User(Base):
     created_at = Column(
         TIMESTAMP(timezone=True), nullable=False, server_default=func.now()
     )
+    posts = relationship("Post", back_populates="owner", cascade="all, delete")
 
 
 # Post model
@@ -28,6 +29,10 @@ class Post(Base):
     created_at = Column(
         TIMESTAMP(timezone=True), nullable=False, server_default=func.now()
     )
+    owner_id = Column(
+        Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False
+    )
+    owner = relationship("User", back_populates="posts")
 
 
 # Deleted Post model
