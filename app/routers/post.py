@@ -1,7 +1,8 @@
+from sqlalchemy import or_
 from .. import models, schemas, oauth2
 from fastapi import status, HTTPException, Depends, APIRouter, Response
 from sqlalchemy.orm import Session
-from typing import List
+from typing import List, Optional
 from ..database import get_db
 
 # Create a router
@@ -11,14 +12,28 @@ router = APIRouter(prefix="/posts", tags=["Posts"])
 @router.get(
     "/", status_code=status.HTTP_200_OK, response_model=List[schemas.PostResponse]
 )
-def get_posts(db: Session = Depends(get_db)):
-    posts = db.query(models.Post).all()
-    # sort posts by created date
-    # posts.sort(key=lambda x: x.created_at, reverse=True)
-    # return posts
-
-    # sort posts by id
-    posts.sort(key=lambda x: x.id, reverse=True)
+def get_posts(
+    db: Session = Depends(get_db),
+    current_user: int = Depends(oauth2.get_current_user),
+    limit: int = 10,
+    skip: int = 0,
+    published: Optional[bool] = None,
+    search: Optional[str] = None,
+):
+    query = db.query(models.Post)
+    if published is not None:
+        query = query.filter(models.Post.published == published)
+    if search:
+        search_terms = search.split()
+        search_pattern = "%" + "%".join(search_terms) + "%"
+        query = query.filter(
+            or_(
+                models.Post.title.ilike(search_pattern),
+                models.Post.content.ilike(search_pattern),
+            )
+        )
+    # get all posts sorted by id
+    posts = query.order_by(models.Post.id.desc()).offset(skip).limit(limit).all()
     return posts
 
 
@@ -160,27 +175,6 @@ def get_posts_by_category(
     return posts
 
 
-# Get Posts by Published
-@router.get(
-    "/published/{published}",
-    response_model=List[schemas.PostResponse],
-    status_code=status.HTTP_200_OK,
-)
-def get_posts_by_published(
-    published: bool,
-    db: Session = Depends(get_db),
-    current_user: int = Depends(oauth2.get_current_user),
-):
-    posts = db.query(models.Post).filter(models.Post.published == published).all()
-
-    if not posts:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"post with published: {published} does not exist",
-        )
-    return posts
-
-
 # Get deleted posts
 @router.get(
     "/deleted/trash",
@@ -191,7 +185,9 @@ def get_deleted_posts(
     db: Session = Depends(get_db),
     current_user: int = Depends(oauth2.get_current_user),
 ):
-    deleted_posts = db.query(models.DeletedPost).all()
+    deleted_posts = (
+        db.query(models.DeletedPost).order_by(models.DeletedPost.id.desc()).all()
+    )
 
     if not deleted_posts:
         raise HTTPException(
