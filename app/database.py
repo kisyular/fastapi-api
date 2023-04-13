@@ -34,3 +34,28 @@ def get_db():
         yield db
     finally:
         db.close()
+
+
+# ANOTHER WAY TO CONNECT TO THE DATABASE USING THE PSYCOPG DRIVER
+# import psycopg
+# import time
+
+# Database Connection
+# Connect to the database using the psycopg library
+# while True:
+#     try:
+#         conn = psycopg.connect(
+#             host=db_host,
+#             port=db_port,
+#             user=db_user,
+#             password=db_password,
+#             dbname="fastapi",
+#             row_factory=psycopg.rows.dict_row,
+#         )
+#         print("Connected to the database")
+#         cursor = conn.cursor()
+#         break
+#     except Exception as e:
+#         print("Error: ", e)
+#         print("Retrying in 5 seconds")
+#         time.sleep(5)
