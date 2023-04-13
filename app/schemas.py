@@ -1,6 +1,7 @@
 from pydantic import BaseModel, EmailStr
 from typing import Optional
 from datetime import datetime
+from pydantic.types import conint
 
 
 class PostBase(BaseModel):
@@ -62,3 +63,10 @@ class DeletedPostResponse(PostBase):
 
     class Config:
         orm_mode = True
+
+
+# Voting Schema
+class Vote(BaseModel):
+    post_id: int
+    # dir please restrict to 1 or 0
+    dir: conint(ge=0, le=1)
