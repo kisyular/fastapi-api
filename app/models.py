@@ -43,13 +43,13 @@ class DeletedPost(Base):
     content = Column(String, nullable=False)
     published = Column(Boolean, nullable=False, server_default="false")
     category = Column(String, nullable=False)
-    deleted_by = Column(Integer, ForeignKey("users.id"))
+    owner_id = Column(Integer, ForeignKey("users.id"))
     deleted_at = Column(
         TIMESTAMP(timezone=True), nullable=False, server_default=func.now()
     )
-    user = relationship("User", back_populates="deleted_posts")
+    owner = relationship("User", back_populates="deleted_posts")
 
     # User model
     User.deleted_posts = relationship(
-        "DeletedPost", back_populates="user", cascade="all, delete"
+        "DeletedPost", back_populates="owner", cascade="all, delete"
     )

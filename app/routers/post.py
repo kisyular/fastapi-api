@@ -148,7 +148,7 @@ def delete_post(
             content=post.content,
             published=post.published,
             category=post.category,
-            deleted_by=current_user.id,
+            owner_id=current_user.id,
         )
         db.add(deleted_post)
 

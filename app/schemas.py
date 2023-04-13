@@ -56,9 +56,9 @@ class TokenData(BaseModel):
 
 class DeletedPostResponse(PostBase):
     id: int
-    deleted_by: int
     deleted_at: datetime
-    user: UserResponse
+    owner_id: int
+    owner: UserResponse
 
     class Config:
         orm_mode = True
