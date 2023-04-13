@@ -19,10 +19,13 @@ def get_posts(
     skip: int = 0,
     published: Optional[bool] = None,
     search: Optional[str] = None,
+    category: Optional[str] = None,
 ):
     query = db.query(models.Post)
     if published is not None:
         query = query.filter(models.Post.published == published)
+    if category is not None:
+        query = query.filter(models.Post.category == category)
     if search:
         search_terms = search.split()
         search_pattern = "%" + "%".join(search_terms) + "%"
@@ -152,27 +155,6 @@ def delete_post(
     db.commit()
 
     return Response(status_code=status.HTTP_204_NO_CONTENT)
-
-
-# Get Posts by Category
-@router.get(
-    "/category/{category}",
-    response_model=List[schemas.PostResponse],
-    status_code=status.HTTP_200_OK,
-)
-def get_posts_by_category(
-    category: str,
-    db: Session = Depends(get_db),
-    current_user: int = Depends(oauth2.get_current_user),
-):
-    posts = db.query(models.Post).filter(models.Post.category == category).all()
-
-    if not posts:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"post with category: {category} does not exist",
-        )
-    return posts
 
 
 # Get deleted posts
