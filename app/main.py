@@ -15,13 +15,13 @@ models.Base.metadata.create_all(bind=engine)
 # CORS
 from fastapi.middleware.cors import CORSMiddleware
 
+app = FastAPI()
 origins = [
-    "https://nione.kisyula.com/",
+    "https://kisyula.com",
+    "https://nione.kisyula.com",
     "http://localhost",
     "http://localhost:8000",
 ]
-
-app = FastAPI()
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
