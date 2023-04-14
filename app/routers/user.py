@@ -1,6 +1,6 @@
-from .. import models, schemas, utils
+from .. import models, schemas, utils, oauth2
 from fastapi import status, HTTPException, Depends, APIRouter
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 from typing import List
 from ..database import get_db
 
@@ -33,10 +33,21 @@ def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
 
 # Get a user by id
 @router.get(
-    "/{id}", status_code=status.HTTP_200_OK, response_model=schemas.UserResponse
+    "/{id}",
+    status_code=status.HTTP_200_OK,
+    response_model=schemas.UserWithPostsResponse,
 )
-def get_user(id: int, db: Session = Depends(get_db)):
-    user = db.query(models.User).filter(models.User.id == id).first()
+def get_user(
+    id: int,
+    db: Session = Depends(get_db),
+    current_user: int = Depends(oauth2.get_current_user),
+):
+    user = (
+        db.query(models.User)
+        .options(joinedload(models.User.posts))
+        .filter(models.User.id == id)
+        .first()
+    )
     if not user:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -49,6 +60,8 @@ def get_user(id: int, db: Session = Depends(get_db)):
 @router.get(
     "/", status_code=status.HTTP_200_OK, response_model=List[schemas.UserResponse]
 )
-def get_users(db: Session = Depends(get_db)):
+def get_users(
+    db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user)
+):
     users = db.query(models.User).all()
     return users

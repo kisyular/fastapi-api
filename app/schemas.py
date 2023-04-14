@@ -1,5 +1,5 @@
 from pydantic import BaseModel, EmailStr
-from typing import Optional
+from typing import Optional, List
 from datetime import datetime
 from pydantic.types import conint
 
@@ -58,6 +58,17 @@ class UserLogin(BaseModel):
 class Token(BaseModel):
     access_token: str
     token_type: str
+
+
+class UserWithPostsResponse(BaseModel):
+    id: int
+    name: str
+    email: str
+    created_at: datetime
+    posts: List[PostResponse]
+
+    class Config:
+        orm_mode = True
 
 
 class TokenData(BaseModel):
