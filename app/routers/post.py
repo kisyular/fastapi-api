@@ -63,7 +63,6 @@ def create_posts(
     db: Session = Depends(get_db),
     current_user: int = Depends(oauth2.get_current_user),
 ):
-    print(current_user)
     new_post = models.Post(
         title=post.title,
         content=post.content,

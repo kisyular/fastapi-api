@@ -24,12 +24,12 @@ def login(
     )
     if not user:
         raise HTTPException(
-            status_code=status.HTTP_403_NOT_FOUND,
+            status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect email or password",
         )
     if not utils.verify_password(user_credentials.password, user.password):
         raise HTTPException(
-            status_code=status.HTTP_403_NOT_FOUND,
+            status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect password or email",
         )
     # Generate a JWT token
