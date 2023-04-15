@@ -24,13 +24,13 @@ def login(
     )
     if not user:
         raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Incorrect email or password",
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Invalid Credentials",
         )
     if not utils.verify_password(user_credentials.password, user.password):
         raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Incorrect password or email",
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Invalid Credentials",
         )
     # Generate a JWT token
     access_token = oauth2.create_access_token(data={"user_id": user.id})
