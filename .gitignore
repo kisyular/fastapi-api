@@ -10,6 +10,8 @@ build/
 htmlcov/
 .coverage
 fastapi/
+docker-compose.yml
+Dockerfile
 
 # Files
 *.pyc
@@ -19,3 +21,4 @@ fastapi/
 *.log
 *.swp
 *.DS_Store
+
