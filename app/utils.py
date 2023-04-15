@@ -1,5 +1,8 @@
 # Import CryptContext
 from passlib.context import CryptContext
+import warnings
+
+warnings.filterwarnings("ignore", category=DeprecationWarning)
 
 # Initialize the password hashing context
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
