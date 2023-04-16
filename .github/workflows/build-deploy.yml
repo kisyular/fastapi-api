@@ -10,6 +10,17 @@ on:
 
 jobs:
     build:
+        environment:
+            name: build
+        env:
+            DB_HOST: ${{DB_HOST }}
+            DB_USER: ${{DB_USER }}
+            DB_PASSWORD: ${{DB_PASSWORD }}
+            DB_NAME: ${{DB_NAME }}
+            DB_PORT: ${{DB_PORT }}
+            SECRET_KEY: ${{SECRET_KEY }}
+            ALGORITHM: ${{ALGORITHM }}
+            ACCESS_TOKEN_EXPIRE_MINUTES: ${{ACCESS_TOKEN_EXPIRE_MINUTES }}
         runs-on: ubuntu-latest
 
         steps:
