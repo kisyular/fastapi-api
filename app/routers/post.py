@@ -122,7 +122,7 @@ def update_post(
 
     if post.owner_id != current_user.id:
         raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
+            status_code=status.HTTP_403_FORBIDDEN,
             detail=f"you are not authorized to update this post",
         )
 
@@ -155,7 +155,7 @@ def delete_post(
 
     if post.owner_id != current_user.id:
         raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
+            status_code=status.HTTP_403_FORBIDDEN,
             detail=f"you are not authorized to delete this post",
         )
 

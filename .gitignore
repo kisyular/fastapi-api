@@ -21,4 +21,4 @@ Dockerfile
 *.log
 *.swp
 *.DS_Store
-
+.pytest_cache/
